@@ -8,6 +8,7 @@ class TeacherSerializer(serializers.ModelSerializer):
         fields = "__all__"
         
 class GroupSerializer(serializers.ModelSerializer):
+    teacher = TeacherSerializer()
     class Meta:
         model = Group
         fields = "__all__"
@@ -21,15 +22,19 @@ class StudentSerializer(serializers.ModelSerializer):
 
 
 class TestSerializer(serializers.ModelSerializer):
-    group = GroupSerializer()
-    teacher = TeacherSerializer()
     class Meta:
         model = Test
         fields = "__all__"
         
 class TestResponseSerilizer(serializers.ModelSerializer):
-    student = StudentSerializer()
-    test = TestSerializer()
     class Meta:
         model = TestResponse
         fields = "__all__"
+        
+# class ResultsSerilizer(serializers.ModelSerializer):
+#     group = GroupSerializer()
+#     testresponse = TestResponseSerilizer()
+    
+#     class Meta:
+#         model = Results
+#         fields = "__all__"

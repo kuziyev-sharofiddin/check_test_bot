@@ -2,9 +2,7 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 import requests
 import json
 
-
 import logging
-# from utils import  FeedBackUsernameStates
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -19,43 +17,45 @@ responses = requests.get(url=urls).text
 dataa = json.loads(responses)
 
 
-class FeedBackUsernameStates(StatesGroup):
+class FeedBackTestNameStates(StatesGroup):
     name = State()
-
-        
-def test_name_one():
-    url = f"{BASE_URL}/tests/"
-    filtered_tests = requests.get(url=url).json()
-    urls = f"{BASE_URL}/students/"
-    filtered_students = requests.get(url=urls).json()
-    
-    for i in filtered_tests:
-        for x in filtered_students:
-            if i['group']['id'] == x['group']['id']:
-                return  filtered_tests[-1]['name']             
-            
-
 
     
 def check_test(org_test_keys, test_keys):
     results = []
+    resultString = ""
+    correct_count = ""
     for index, org_test_key  in enumerate(org_test_keys):
         if(len(test_keys) <= index ):
             pass
             # results.append(f"{index} javob kiritilmagan")
         elif(org_test_key == test_keys[index]):
             results.append(f" {test_keys[index]} ✅ ")
+            resultString += "1"
+            correct_count += "1"
+            # correct.append(f"{test_keys[index]}")
+
         else:
             results.append(f" {test_keys[index]} ❌ ")
-    return results
+            resultString += "0"
+            
+    return [results, resultString, correct_count]
+     
 
-  
-def test_name_two(name):
-    url = f"{BASE_URL}/tests/?group={name}"
-    filtered_tests = requests.get(url=url).json()
-    test2 = filtered_tests[-2]['name']
+def create_testresponse(student, tests, answer_message, correct):
+    url = f"{BASE_URL}/testresponse/"
     
-    return test2  
+    print(answer_message)
+    if answer_message and tests and student and correct:
+        post = requests.post(url=url, data = {
+            "answer_message":answer_message,
+            "correct_response_count": correct,
+            "student": student["id"],
+            "test": tests['id']
+        })
+        return "Ishtirokingiz uchun tashakkur.\nNatijangiz ustozga jo'natildi"
+    else:
+        "Amal oxiriga yetmadi"
 
 
     

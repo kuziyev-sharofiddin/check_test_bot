@@ -5,6 +5,7 @@ from .models import *
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter
 from django_filters import rest_framework as filters
+from django.db.models import Q
 # from django_filters.rest_framework import DjangoFilterBackend
 # Create your views here.
 
@@ -18,6 +19,23 @@ class StudentFilter(filters.FilterSet):
         fields = ['name','login']
     
 
+class TeacherFilter(filters.FilterSet):
+    first_name = filters.CharFilter(lookup_expr="icontains")
+    
+    class Meta:
+        model = Teacher
+        fields = ['first_name']
+
+class GroupFilter(filters.FilterSet):
+    name = filters.CharFilter(lookup_expr='icontains')
+    teacher = filters.CharFilter(lookup_expr="id")
+    
+    class Meta:
+        model = Group
+        fields = ['name', 'teacher']
+        
+        
+
 class TestFilter(filters.FilterSet):
     message = filters.CharFilter(lookup_expr="icontains")
     name = filters.CharFilter(lookup_expr='icontains')
@@ -30,10 +48,11 @@ class TestFilter(filters.FilterSet):
 
 class TestResponseFilter(filters.FilterSet):
     message = filters.CharFilter(lookup_expr="icontains")
+    group = filters.CharFilter(lookup_expr='icontains')
     
     class Meta:
         model = TestResponse
-        fields = ['message']
+        fields = ['message','group']
     
 
 
@@ -48,37 +67,34 @@ class TestResponseFilter(filters.FilterSet):
     
 #     serializer_class = GroupSerializer
 #     queryset = Group.objects.all()
-    
-class StudentAPIView(ListAPIView):
+   
+class TeacherAPIView(viewsets.ModelViewSet):
+    serializer_class = TeacherSerializer
+    queryset = Teacher.objects.all()
+    filter_fields = ("id", "name")
+    filterset_class = TeacherFilter
+ 
+class StudentAPIView(viewsets.ModelViewSet):
     serializer_class = StudentSerializer
     queryset = Student.objects.all()
     filter_fields = ("id", "name",'login')
     filterset_class = StudentFilter
-   
-class TestAPIView(ListAPIView):
+  
+class GroupAPIView(viewsets.ModelViewSet):
+    serializer_class = GroupSerializer
+    queryset = Group.objects.all()
+    filter_fields = ("id", "name",'teacher')
+    filterset_class = GroupFilter
+     
+class TestAPIView(viewsets.ModelViewSet):
     serializer_class = TestSerializer
     queryset = Test.objects.all()
     filter_fields = ("id", "message",'group','name')
     filterset_class = TestFilter 
     
-class TestResponseAPIView(ListAPIView):
+class TestResponseAPIView(viewsets.ModelViewSet):
     serializer_class = TestResponseSerilizer
     queryset = TestResponse.objects.all()
-    filter_fields = ("id", "message")
+    filter_fields = ("id", "message",'group')
     filterset_class = TestResponseFilter 
-# class StudentIDViewSet(viewsets.ModelViewSet):
-
-#     serializer_class = StudentIDSerializer
-#     queryset = StudentID.objects.all()
     
-
-
-# class TestViewSet(viewsets.ModelViewSet):
-
-#     serializer_class = TestSerializer
-#     queryset = Test.objects.all()
-    
-# class TestResponseViewSet(viewsets.ModelViewSet):
- 
-#     serializer_class = TestResponseSerilizer
-#     queryset = TestResponse.objects.all()
