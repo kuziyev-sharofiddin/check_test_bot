@@ -43,15 +43,14 @@ def check_test(org_test_keys, test_keys):
      
 
 def create_testresponse(student, tests, answer_message, correct):
-    url = f"{BASE_URL}/testresponse/"
-    
+    url = f"{BASE_URL}/test_response_create/"
     print(answer_message)
     if answer_message and tests and student and correct:
         post = requests.post(url=url, data = {
             "answer_message":answer_message,
             "correct_response_count": correct,
-            "student": student["id"],
-            "test": tests['id']
+            "student": student,
+            "test": tests
         })
         return "Ishtirokingiz uchun tashakkur.\nNatijangiz ustozga jo'natildi"
     else:

@@ -21,7 +21,6 @@ class Group(models.Model):
     
 class Student(models.Model):
     name = models.CharField(max_length=50,null=True, blank=True)
-    login = models.CharField(max_length=50,null=True, blank=True)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -30,9 +29,15 @@ class Student(models.Model):
     def __str__(self):
         return self.name 
     
-
 class Test(models.Model):
-    name = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+
+class TestKeys(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE)
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE)
     message = models.CharField(max_length=500, null=True, blank=True)
     group = models.ForeignKey(Group, on_delete=models.CASCADE)
@@ -40,7 +45,7 @@ class Test(models.Model):
 
   
     def __str__(self):
-        return f"{str(self.teacher)} {str(self.name)}"
+        return f"{str(self.teacher)}"
 
 class TestResponse(models.Model):
     answer_message = models.CharField(max_length=200, null=True, blank=True)

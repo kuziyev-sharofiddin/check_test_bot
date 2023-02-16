@@ -5,12 +5,13 @@ import json
 
 
 def group_test_buttons(group):
-    url = f"{BASE_URL}/tests/?group={group}"
+    url = f"{BASE_URL}/test_keys/?group={group}"
     responses = requests.get(url=url).json()
     
     # print(responses)
-    test1 = responses[-1]['name']
-    test2 = responses[-2]['name']
+    test1 = responses[-1]['test']['name']
+    test2 = responses[-2]['test']['name']
+    print(test1)
     return ReplyKeyboardMarkup(
     resize_keyboard=True,
     keyboard=[

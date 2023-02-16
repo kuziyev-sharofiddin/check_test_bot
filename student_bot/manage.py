@@ -32,8 +32,8 @@ data = {
     "step": "",
     "state": {
         'org_answer': [],
-        'answer': [],
-        'student': {}
+        'answer': "",
+        'student': [],
     },
 }
 
@@ -64,8 +64,6 @@ async def echok(message: types.Message):
     filtered_students = requests.get(url=f"{BASE_URL}/students/?name={message.text}")
     student = filtered_students.json()
     data["state"]["student"] = student
-    # if student:
-    #     data["step"] = steps["enter_login"]
     if student:
         data["step"] = steps["choose_test"]
         await message.answer("Quyidagilardan birini tanlang", 
@@ -75,29 +73,14 @@ async def echok(message: types.Message):
         await message.answer("Noto'g'ri ism kiritdingiz.\nIltimos quyidagi tugmani bosing va boshqattan ism kiriting", reply_markup=start_button)
 
 
-
-# @dp.message_handler(lambda message: data["step"] == steps["enter_login"])
-# async def echok(message: types.Message):
-#     filtered_students = requests.get(url=f"{BASE_URL}/students/?login={message.text}")
-#     # check_students = requests.get(url=f"{BASE_URL}/students/?name={message.text}").json()
-#     student = filtered_students.json()
-#     if student:
-#         data["step"] = steps["choose_test"]
-#         await message.answer("Quyidagilardan birini tanlang", 
-#                              reply_markup=group_test_buttons(student[0]['group']['id']))
-#     else:
-#         data["step"] = steps["begin"]
-#         await message.answer("""Noto'g'ri login kiritdingiz.Iltimos quyidagi tugmani bosing.
-#                             va boshqattan login kiriting""", reply_markup=start_button)
         
         
 
 @dp.message_handler(Text(endswith="-Test"),lambda message: data["step"] == steps["choose_test"])
 async def test(message: types.Message):
-    filtered_tests = requests.get(url=f"{BASE_URL}/tests/?name={message.text}").json()
 
+    filtered_tests = requests.get(url=f"{BASE_URL}/test_keys/?test__name={message.text}").json()
     test = filtered_tests[0]
-
     data["step"] = steps["send_answer"]
     data["state"]["org_answer"] = test
     await message.answer("Kalitlarni kiriting:")
@@ -129,29 +112,18 @@ async def test(message: types.Message, state:FSMContext):
         data["step"] = steps["result_waiting"]
         await message.answer(resultstr)
         await message.answer(f"Siz {len(org_answer)} tadan {correct_counts} ta topdingiz")
-        
         result = create_testresponse(
-            data["state"]["student"][0],
-            data["state"]["org_answer"],
+            data["state"]["student"][0]["id"],
+            data["state"]["org_answer"]['test']["id"],
             resultString,
-            correct_counts
+            correct_counts,
         )
-        
         await message.answer(result)
         await state.finish()
     else:
         data["step"] = steps["send_answer"]
         await message.answer("Kalitlarni to'liq kiritmadingiz.Iltimos kalitlarni to'liq kiriting:")
         await FeedBackTestNameStates.name.set()
-        # data["step"] = steps["choose_test"]
-        # await message.answer("Iltimos kalitlarni to'liq kiriting", 
-        #                      reply_markup=group_test_buttons(data["state"]["student"][0]['group']['id']))
-            
-            
-
-
-
-
     
 if __name__ == '__main__':
 

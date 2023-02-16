@@ -13,33 +13,57 @@ BASE_URL = 'http://127.0.0.1:8000/api/v1'
 
 class FeedBackTestNameStates(StatesGroup):
     name = State()
+
+class NameTestStates(StatesGroup):
     test = State()
 
+class FeedBackGroupNameStates(StatesGroup):
+    group_name =State()
 
+class FeedBackStudentStates(StatesGroup):
+    student_name =State()
 
-def create_test_name(groups, teachers, test_name):
+def create_test_name(test_names):
     url = f"{BASE_URL}/tests/"
 
-    if test_name and groups and teachers:
-        post = requests.post(url=url, data = {
-            "group": groups['id'],
-            "teacher": teachers["id"],
-            "name":test_name,
+    if test_names:
+        test = requests.post(url=url, data = {
+            "name":test_names,
         })
-        return "Iltimos testni kalitlarini kiriting"
+        return test
     else:
-        "Amal oxiriga yetmadi"
+        return None
 
-def create_test(groups, teachers, message):
-    url = f"{BASE_URL}/tests/"
+def create_test(test, message,  teachers, groups):
+    url = f"{BASE_URL}/test_key_create/"
 
-    if message and groups and teachers:
-        post = requests.post(url=url, data = {
-            "group": groups['id'],
-            "teacher": teachers["id"],
-            "message":message
-
+    if test and message and  teachers and groups:        
+        test = requests.post(url=url, data = {
+            "test":test,
+            "message":message,
+            "teacher": teachers,
+            "group": groups,
         })
-        return "Testni kalitlari bazaga jo'natildi"
+        return test
+
     else:
-        "Amal oxiriga yetmadi"
+        return None
+    
+def add_to_group(text, teacher):
+    url = f"{BASE_URL}/group_create/"
+    if text and teacher:
+        add_group = requests.post(url=url, data = {
+            "name":text,
+            "teacher":teacher,
+        })
+        return add_group
+    
+def add_to_student(teacher, group, name):
+    url = f"{BASE_URL}/student_create/"
+    if teacher and group and name:
+        add_student = requests.post(url=url, data = {
+            "teacher": teacher,
+            "group": group,
+            "name": name,
+        })
+        return add_student
