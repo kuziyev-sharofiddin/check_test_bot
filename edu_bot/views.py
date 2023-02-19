@@ -11,7 +11,7 @@ from django.db.models import Q
 
 
 class StudentFilter(filters.FilterSet):
-    name = filters.CharFilter(lookup_expr="icontains")
+    name = filters.CharFilter()
     group = filters.ModelChoiceFilter(field_name="group__name", queryset=Group.objects.all())
 
     
@@ -21,25 +21,25 @@ class StudentFilter(filters.FilterSet):
     
 
 class TeacherFilter(filters.FilterSet):
-    first_name = filters.CharFilter(lookup_expr="icontains")
+    first_name = filters.CharFilter()
     
     class Meta:
         model = Teacher
         fields = ['first_name']
 
 class GroupFilter(filters.FilterSet):
-    name = filters.CharFilter(lookup_expr='icontains')
+    name = filters.CharFilter()
     teacher = filters.CharFilter(lookup_expr="id")
 
     
     class Meta:
         model = Group
-        fields = ['name', 'teacher']
+        fields = ['name', 'teacher', 'id']
         
         
 
 class TestFilter(filters.FilterSet):
-    name = filters.CharFilter(lookup_expr='icontains')
+    name = filters.CharFilter()
 
     
     class Meta:
@@ -68,7 +68,7 @@ class TestResponseFilter(filters.FilterSet):
 class StudentListAPIView(ListAPIView):
     serializer_class = StudentDetailSerializer
     queryset = Student.objects.all()
-    filter_fields = ("id", "name")
+    filter_fields = ("id", "name", 'group')
     filterset_class = StudentFilter
 
 class StudentCreateAPIView(CreateAPIView):
@@ -91,8 +91,9 @@ class TeacherAPIView(viewsets.ModelViewSet):
 class GroupListAPIView(ListAPIView):
     serializer_class = GroupDetailSerializer
     queryset = Group.objects.all()
-    filter_fields = ("group", "name",'teacher')
+    filter_fields = ("group",'teacher','id')
     filterset_class = GroupFilter
+    
 
 class GroupCreateAPIView(CreateAPIView):
     serializer_class = GroupSerializer

@@ -4,14 +4,14 @@ import requests
 import json
 
 def group_test_buttons(group):
-    url = f"{BASE_URL}/test_keys/?teacher={group}"
+    url = f"{BASE_URL}/test_keys/?group={group}"
     responses = requests.get(url=url).json()
     
     # print(responses)
     test1 = responses[-1]['test']['name']  
     test2 = responses[-2]['test']['name']
     return ReplyKeyboardMarkup(
-    resize_keyboard=True,
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
             [
                 KeyboardButton(text=f"{test1}"),
@@ -24,7 +24,7 @@ def group_test_buttons(group):
 def group_buttons(teacher):
     url = f"{BASE_URL}/groups/?name=&teacher={teacher}"
     responses = requests.get(url=url).json()
-    mk = ReplyKeyboardMarkup(resize_keyboard=True,)
+    mk = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True,)
     for n in responses:
         group = n['name']
         
@@ -33,7 +33,7 @@ def group_buttons(teacher):
     
 
 start_button = ReplyKeyboardMarkup(
-    resize_keyboard=True,
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
         [
             KeyboardButton(text='Boshlash')
@@ -41,20 +41,36 @@ start_button = ReplyKeyboardMarkup(
     ]
 )
 
-
-choose_group_button = ReplyKeyboardMarkup(
-    resize_keyboard=True,
+again_start_button = ReplyKeyboardMarkup(
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Guruhni yoki o'quvchini qo'shish"),
-            KeyboardButton(text="Guruhni yoki o'quvchini o'chirish"),
-            KeyboardButton(text="Guruhni ko'rish")
+            KeyboardButton(text='Boshqa amalga o\'tish')
         ]
     ]
 )
 
+# choose_group_button = ReplyKeyboardMarkup(
+#     resize_keyboard=True, one_time_keyboard=True, row_width=3,
+#     keyboard=[
+#         [
+#             KeyboardButton(text="Guruhni yoki o'quvchini qo'shish"),
+#             KeyboardButton(text="Guruhni yoki o'quvchini o'chirish"),
+#             KeyboardButton(text="Guruhni ko'rish")
+#         ]
+#     ]
+# )
+
+add_group_or_student = KeyboardButton("Guruhni yoki o'quvchini qo'shish")
+delete_group_or_student = KeyboardButton("Guruhni yoki o'quvchini o'chirish")
+view_group = KeyboardButton("Guruhni ko'rish")
+
+choose_group_button = ReplyKeyboardMarkup(resize_keyboard=True)
+choose_group_button.add(add_group_or_student).add(delete_group_or_student).insert(view_group)
+
+
 add_button = ReplyKeyboardMarkup(
-    resize_keyboard=True,
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
         [
             KeyboardButton(text="Guruhni qo'shish"),
@@ -63,12 +79,21 @@ add_button = ReplyKeyboardMarkup(
     ]
 )
 
-
-group_button = ReplyKeyboardMarkup(
-    resize_keyboard=True,
+delete_button = ReplyKeyboardMarkup(
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
         [
-            KeyboardButton(text="Guruhga test jo'nati sh"),
+            KeyboardButton(text="Guruhni o'chirish"),
+            KeyboardButton(text="O'quvchini o'chirish"),
+        ]
+    ]
+)
+
+group_button = ReplyKeyboardMarkup(
+    resize_keyboard=True, one_time_keyboard=True, row_width=3,
+    keyboard=[
+        [
+            KeyboardButton(text="Guruhga test jo'natish"),
             KeyboardButton(text="Guruhni natijalarini bilish"),
         ]
     ]

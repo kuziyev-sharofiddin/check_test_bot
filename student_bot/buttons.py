@@ -13,7 +13,7 @@ def group_test_buttons(group):
     test2 = responses[-2]['test']['name']
     print(test1)
     return ReplyKeyboardMarkup(
-    resize_keyboard=True,
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
             [
                 KeyboardButton(text=f"{test1}"),
@@ -25,7 +25,7 @@ def group_test_buttons(group):
  
     
 start_button = ReplyKeyboardMarkup(
-    resize_keyboard=True,
+    resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
         [
             KeyboardButton(text='Boshlash')

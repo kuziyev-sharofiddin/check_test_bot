@@ -1,6 +1,6 @@
 import logging
-from utils import BASE_URL,FeedBackTestNameStates, create_test_name, add_to_group, add_to_student, create_test, NameTestStates, FeedBackGroupNameStates,FeedBackStudentStates
-from buttons import start_button, group_buttons, choose_group_button,group_button, group_test_buttons, add_button
+from utils import BASE_URL,FeedBackTestNameStates, create_test_name, add_to_group, add_to_student, create_test, delete_group, delete_group_student, NameTestStates, FeedBackGroupNameStates,FeedBackStudentStates,GroupDeleteStates
+from buttons import start_button, group_buttons, choose_group_button,group_button, group_test_buttons, add_button, delete_button, again_start_button
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
@@ -24,6 +24,9 @@ steps = {
     "begin": "begin",
     "enter_name": "enter_name",
     "group_add":"group_add",
+    "group_delete":"group_delet",
+    "student_delete":"student_delete",
+    "student_deletes":"student_deletes",
     "student_add":"student_add",
     "student_add_to_group":"student_add_to_group",
     "group_delete":"group_delete",
@@ -43,7 +46,9 @@ data = {
     "state": {
         "test_keys":"",
         "test_name":"",
+        "delete_groups_students":[],
         "test_names":[],
+        'delete_group': [],
         'student_group': [],
         'group': [],
         'groups':"",
@@ -74,6 +79,7 @@ async def begin(message: types.Message):
     await message.answer("Iltimos ismingizni kiriting")
     
 
+
    
 @dp.message_handler(Text(startswith="Guruhni ko'rish"))
 async def group_view(message: types.Message):
@@ -87,7 +93,52 @@ async def group_or_student_add(message: types.Message):
     await message.answer("Quyidagilardan birin tanlang", reply_markup=add_button)
  
 
+@dp.message_handler(Text(startswith="Guruhni yoki o'quvchini o'chirish"))
+async def group_or_student_add(message: types.Message):
+    await message.answer("Quyidagilardan birin tanlang", reply_markup=delete_button)
 
+
+@dp.message_handler(Text(startswith="Guruhni o'chirish"))
+async def student_add(message: types.Message):
+    data["step"] = steps["group_delete"]
+    await message.answer("O'chirmoqchi bo'lgan guruhingizni tanlang", 
+                        reply_markup=group_buttons(data["state"]["teacher"][0]['id']))
+
+@dp.message_handler(lambda message: data["step"] == steps["group_delete"])
+async def student_add(message: types.Message):
+    deleted_group = requests.get(url=f"{BASE_URL}/groups/?name={message.text}").json()
+    data["state"]["delete_group"] = deleted_group
+    grp_delete = delete_group(
+        data["state"]["delete_group"][0]['id']
+    )
+    response_text = f"{message.text}-guruh muvaffaqiyatli o'chirildi" if grp_delete else "Amal oxiriga yetmadi"
+    await message.answer(response_text)
+ 
+
+
+@dp.message_handler(Text(startswith="O'quvchini o'chirish"))
+async def student_delete(message: types.Message):
+    data["step"] = steps["student_delete"]
+    await message.answer("O'chirmoqchi bo'lgan o'quvchingizni guruhini tanlang", 
+                        reply_markup=group_buttons(data["state"]["teacher"][0]['id']))
+
+
+@dp.message_handler(lambda message: data["step"] == steps["student_delete"])
+async def student_delete_id(message: types.Message):
+    filtered_group_student = requests.get(url=f"{BASE_URL}/groups/?name={message.text}").json()
+    data["state"]["delete_groups_students"] = filtered_group_student
+    data["step"] = steps["student_deletes"]
+    await message.answer("O'chirmoqchi bo'lgan o'quvchingizni ismini kiriting")
+
+@dp.message_handler(lambda message: data["step"] == steps["student_deletes"])
+async def student_deletes_id(message: types.Message):
+    student_deletes = data["state"]["delete_groups_students"][0]['name']
+    filtered_group_student = requests.get(url=f"{BASE_URL}/students/?name={message.text}&group__name={student_deletes}").json()
+    respond = delete_group_student(
+        filtered_group_student[0]['id']
+    )
+    respond_text = f"{student_deletes} guruhdagi {message.text} ismli o'quvchi muvaffaqiyatli o'chirildi" if respond else "Amal oxiriga yetmadi"
+    await message.answer(respond_text)
 
 @dp.message_handler(Text(startswith="Guruhni qo'shish"))
 async def student_add(message: types.Message):
@@ -114,20 +165,20 @@ async def student_add(message: types.Message):
 
 @dp.message_handler(lambda message: data["step"] == steps["student_add_to_group"])
 async def student_add(message: types.Message):
-    filtered_group = requests.get(url=f"{BASE_URL}/students/?group__name={message.text}").json()
+    filtered_group = requests.get(url=f"{BASE_URL}/groups/?name={message.text}").json()
     data["state"]["student_group"] = filtered_group
     data["step"] = steps["student_add"]
-    print(data["state"]["student_group"][0]['group']['id'])
-    print(data["state"]["teacher"][0]['id'])
+
     await message.answer("O'quvchini ismini kiriting")
     await FeedBackStudentStates.student_name.set()
 
 
 @dp.message_handler(lambda message: data["step"] == steps["student_add"], state=FeedBackStudentStates.student_name)
 async def student_add_name(message: types.Message, state:FSMContext):
+    print(data["state"]["student_group"])
     student_name = add_to_student(
         data["state"]["teacher"][0]['id'],
-        data["state"]["student_group"][0]['group']['id'],
+        data["state"]["student_group"][0]['id'],
         message.text,
     )
     response_text = "O'quvchi guruhga kiritildi" if student_name else "Amal oxiriga yetmadi"
@@ -141,12 +192,24 @@ async def send_test(message: types.Message):
     await message.answer("Iltimos testni nomini kiriting")
     await FeedBackTestNameStates.name.set()
 
+@dp.message_handler(lambda message: data["step"] == steps["test_name_enter"],  state=FeedBackTestNameStates.name)
+async def choose_group(message: types.Message, state:FSMContext):
+    data["state"]["test_name"] = message.text
+    data["step"] = steps["test_name"]
+    test_name = create_test_name(
+        data["state"]["test_name"],
+    )
+    response_text = "Test kalitlarini kiriting" if test_name else "Amal oxiriga yetmadi"
+
+    await message.answer(response_text)
+    await state.finish()
+    await NameTestStates.test.set()
 
 @dp.message_handler(Text(startswith="Guruhni natijalarini bilish"))
 async def test_results(message: types.Message):
     data["step"] = steps["group_name_result"] 
     await message.answer("Quyidagilardan birini tanlang", 
-                        reply_markup=group_test_buttons(data["state"]["group"][0]['teacher']['id']))
+                        reply_markup=group_test_buttons(data["state"]["group"][0]['id']))
 
 
 @dp.message_handler(Text(endswith="-Test"), lambda message: data["step"] == steps["group_name_result"])
@@ -156,21 +219,10 @@ async def test_results(message: types.Message):
     result=f"{gr}-guruh {message.text} natijalari:\n"
     for test_result in filtered_tests:
         result += f"{test_result['student']['name']} {len(test_result['answer_message'])} ta testdan {test_result['correct_response_count']} topdi \n"
-    await message.answer(result)
+    await message.answer(result, reply_markup=choose_group_button)
+    await message.answer("Boshqa amalni ko'ring", reply_markup=choose_group_button)
 
-@dp.message_handler(lambda message: data["step"] == steps["test_name_enter"],  state=FeedBackTestNameStates.name)
-async def choose_group(message: types.Message, state:FSMContext):
-    data["state"]["test_name"] = message.text
-    data["step"] = steps["test_name"]
-    test_name = create_test_name(
-        data["state"]["test_name"],
-    )
 
-    response_text = "Test kalitlarini kiriting" if test_name else "Amal oxiriga yetmadi"
-
-    await message.answer(response_text)
-    await state.finish()
-    await NameTestStates.test.set()
 
 @dp.message_handler(lambda message: data["step"] == steps["test_name"], state=NameTestStates.test)
 async def create_tests(message: types.Message,  state:FSMContext):
@@ -185,8 +237,8 @@ async def create_tests(message: types.Message,  state:FSMContext):
         data["state"]["teacher"][0]['id'],
         data["state"]["group"][0]['id'],
     )
-    await message.answer(result)
-    await message.answer('salom')
+    response_text = "Test yaratildi" if result else "Amal oxiriga yetmadi"
+    await message.answer(response_text)
     await state.finish()
 
 

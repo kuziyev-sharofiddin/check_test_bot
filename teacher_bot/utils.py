@@ -23,6 +23,8 @@ class FeedBackGroupNameStates(StatesGroup):
 class FeedBackStudentStates(StatesGroup):
     student_name =State()
 
+class GroupDeleteStates(StatesGroup):
+    name =State()
 def create_test_name(test_names):
     url = f"{BASE_URL}/tests/"
 
@@ -67,3 +69,15 @@ def add_to_student(teacher, group, name):
             "name": name,
         })
         return add_student
+    
+def delete_group(id):
+    url=f"{BASE_URL}/group/{id}/"
+    headers = {'Content-Type': 'application/json; charset=UTF-8'}
+    group_delete = requests.delete(url=url, headers=headers)
+    return group_delete
+
+def delete_group_student(id):
+    url=f"{BASE_URL}/student/{id}/"
+    headers = {'Content-Type': 'application/json; charset=UTF-8'}
+    group_delete_students = requests.delete(url=url, headers=headers)
+    return group_delete_students
