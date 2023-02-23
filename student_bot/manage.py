@@ -22,6 +22,7 @@ steps = {
     "start": "start",
     "begin": "begin",
     "enter_name": "enter_name",
+    'enter_name_id':'enter_name_id',
     "enter_login": "enter_login",
     "choose_test": "choose_test",
     "send_answer": "send_answer",
@@ -37,7 +38,7 @@ data = {
     },
 }
 
-bot = Bot(token=API_TOKEN)
+bot = Bot(token=API_TOKEN, parse_mode=types.ParseMode.HTML)
 
 dp = Dispatcher(bot, storage=MemoryStorage())
 
@@ -58,10 +59,23 @@ async def echos(message: types.Message):
     data["step"] = steps["enter_name"]
     await message.answer("Iltimos ismingizni kiriting")
     
- 
 @dp.message_handler(lambda message: data["step"] == steps["enter_name"])
-async def echok(message: types.Message):
+async def echos(message: types.Message):
+    data["step"] = steps["enter_name_id"]
     filtered_students = requests.get(url=f"{BASE_URL}/students/?name={message.text}")
+    student = filtered_students.json()
+    data["state"]["student"] = student
+    if student:
+        data["step"] = steps["enter_name_id"]
+        await message.answer("Iltimos loginingizni kiriting")
+    else:
+        data["step"] = steps["begin"]
+        await message.answer("Noto'g'ri ism kiritdingiz.\nIltimos quyidagi tugmani bosing va boshqattan ism kiriting", reply_markup=start_button)
+
+
+@dp.message_handler(lambda message: data["step"] == steps["enter_name_id"])
+async def echok(message: types.Message):
+    filtered_students = requests.get(url=f"{BASE_URL}/students/?user_id={message.text}")
     student = filtered_students.json()
     data["state"]["student"] = student
     if student:
@@ -69,8 +83,8 @@ async def echok(message: types.Message):
         await message.answer("Quyidagilardan birini tanlang", 
                              reply_markup=group_test_buttons(student[0]['group']['id']))
     else:
-        data["step"] = steps["begin"]
-        await message.answer("Noto'g'ri ism kiritdingiz.\nIltimos quyidagi tugmani bosing va boshqattan ism kiriting", reply_markup=start_button)
+        data["step"] == steps["enter_name_id"]
+        await message.answer("Noto'g'ri login kiritdingiz.\nIltimos boshqattan login kiriting")
 
 
         
@@ -79,7 +93,7 @@ async def echok(message: types.Message):
 @dp.message_handler(Text(endswith="-Test"),lambda message: data["step"] == steps["choose_test"])
 async def test(message: types.Message):
 
-    filtered_tests = requests.get(url=f"{BASE_URL}/test_keys/?test__name={message.text}").json()
+    filtered_tests = requests.get(url=f"{BASE_URL}/test_keys/?name={message.text}").json()
     test = filtered_tests[0]
     data["step"] = steps["send_answer"]
     data["state"]["org_answer"] = test
@@ -108,17 +122,20 @@ async def test(message: types.Message, state:FSMContext):
                  resultstr += res + "\n"
             else:
                 resultstr += res + " "
-            
+        print(data["state"]["org_answer"])
         data["step"] = steps["result_waiting"]
         await message.answer(resultstr)
-        await message.answer(f"Siz {len(org_answer)} tadan {correct_counts} ta topdingiz")
+        await message.answer(f"Siz <b>{len(org_answer)}</b> tadan <b>{correct_counts}</b> ta topdingiz")
         result = create_testresponse(
             data["state"]["student"][0]["id"],
-            data["state"]["org_answer"]['test']["id"],
+            data["state"]["org_answer"]["id"],
             resultString,
             correct_counts,
         )
         await message.answer(result)
+        data["step"] = steps["choose_test"]
+        await message.answer("Quyidagilardan birini tanlang", 
+                             reply_markup=group_test_buttons(data["state"]["student"][0]['group']['id']))
         await state.finish()
     else:
         data["step"] = steps["send_answer"]
@@ -128,3 +145,6 @@ async def test(message: types.Message, state:FSMContext):
 if __name__ == '__main__':
 
     executor.start_polling(dp, skip_updates=True)
+
+
+    

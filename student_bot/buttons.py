@@ -9,8 +9,8 @@ def group_test_buttons(group):
     responses = requests.get(url=url).json()
     
     # print(responses)
-    test1 = responses[-1]['test']['name']
-    test2 = responses[-2]['test']['name']
+    test1 = responses[-1]['name']
+    test2 = responses[-2]['name']
     print(test1)
     return ReplyKeyboardMarkup(
     resize_keyboard=True, one_time_keyboard=True,

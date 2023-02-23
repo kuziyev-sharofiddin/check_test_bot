@@ -11,9 +11,6 @@ from aiogram.dispatcher.filters import Text
 
 BASE_URL = 'http://127.0.0.1:8000/api/v1'
 
-class FeedBackTestNameStates(StatesGroup):
-    name = State()
-
 class NameTestStates(StatesGroup):
     test = State()
 
@@ -25,31 +22,19 @@ class FeedBackStudentStates(StatesGroup):
 
 class GroupDeleteStates(StatesGroup):
     name =State()
-def create_test_name(test_names):
-    url = f"{BASE_URL}/tests/"
 
-    if test_names:
-        test = requests.post(url=url, data = {
-            "name":test_names,
-        })
-        return test
-    else:
-        return None
 
-def create_test(test, message,  teachers, groups):
+def create_test(name, message,  teachers, groups):
     url = f"{BASE_URL}/test_key_create/"
 
-    if test and message and  teachers and groups:        
+    if name and message and  teachers and groups:        
         test = requests.post(url=url, data = {
-            "test":test,
+            "name":name,
             "message":message,
             "teacher": teachers,
             "group": groups,
         })
         return test
-
-    else:
-        return None
     
 def add_to_group(text, teacher):
     url = f"{BASE_URL}/group_create/"
@@ -60,13 +45,14 @@ def add_to_group(text, teacher):
         })
         return add_group
     
-def add_to_student(teacher, group, name):
+def add_to_student(teacher, group, name, user_id):
     url = f"{BASE_URL}/student_create/"
-    if teacher and group and name:
+    if teacher and group and name and user_id:
         add_student = requests.post(url=url, data = {
             "teacher": teacher,
             "group": group,
             "name": name,
+            "user_id":user_id
         })
         return add_student
     

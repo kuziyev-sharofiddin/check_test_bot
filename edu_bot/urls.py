@@ -4,7 +4,6 @@ from django.urls import path
 
 router = DefaultRouter()
 router.register(r'teachers', TeacherAPIView, basename='teachers')
-router.register(r'tests', TestAPIView, basename='tests')
 urlpatterns = router.urls
 
 urlpatterns = [

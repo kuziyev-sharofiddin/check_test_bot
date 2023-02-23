@@ -14,7 +14,7 @@ BASE_URL = 'http://127.0.0.1:8000/api/v1'
 
 urls = f"{BASE_URL}/tests/"
 responses = requests.get(url=urls).text
-dataa = json.loads(responses)
+
 
 
 class FeedBackTestNameStates(StatesGroup):

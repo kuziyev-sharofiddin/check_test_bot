@@ -8,8 +8,8 @@ def group_test_buttons(group):
     responses = requests.get(url=url).json()
     
     # print(responses)
-    test1 = responses[-1]['test']['name']  
-    test2 = responses[-2]['test']['name']
+    test1 = responses[-1]['name']  
+    test2 = responses[-2]['name']
     return ReplyKeyboardMarkup(
     resize_keyboard=True, one_time_keyboard=True,
     keyboard=[
@@ -64,9 +64,10 @@ again_start_button = ReplyKeyboardMarkup(
 add_group_or_student = KeyboardButton("Guruhni yoki o'quvchini qo'shish")
 delete_group_or_student = KeyboardButton("Guruhni yoki o'quvchini o'chirish")
 view_group = KeyboardButton("Guruhni ko'rish")
+view_students = KeyboardButton("O'quvchilar ro'yxatini ko'rish")
 
-choose_group_button = ReplyKeyboardMarkup(resize_keyboard=True)
-choose_group_button.add(add_group_or_student).add(delete_group_or_student).insert(view_group)
+choose_group_button = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=30)
+choose_group_button.add(view_group).insert(view_students).insert(delete_group_or_student).add(add_group_or_student)
 
 
 add_button = ReplyKeyboardMarkup(

@@ -12,20 +12,23 @@ from django.db.models import Q
 
 class StudentFilter(filters.FilterSet):
     name = filters.CharFilter()
+    user_id = filters.CharFilter()
     group = filters.ModelChoiceFilter(field_name="group__name", queryset=Group.objects.all())
+    teacher = filters.ModelChoiceFilter(field_name="teacher__first_name", queryset=Teacher.objects.all())
 
     
     class Meta:
         model = Student
-        fields = ['name','group__name']
+        fields = ['name', 'user_id', 'group__name', 'teacher__first_name']
     
 
 class TeacherFilter(filters.FilterSet):
     first_name = filters.CharFilter()
+    user_id = filters.CharFilter()
     
     class Meta:
         model = Teacher
-        fields = ['first_name']
+        fields = ['first_name', "user_id"]
 
 class GroupFilter(filters.FilterSet):
     name = filters.CharFilter()
@@ -38,26 +41,18 @@ class GroupFilter(filters.FilterSet):
         
         
 
-class TestFilter(filters.FilterSet):
-    name = filters.CharFilter()
-
-    
-    class Meta:
-        model = Test
-        fields = ['name']
-
 class TestKeysFilter(filters.FilterSet):
-    test = filters.ModelChoiceFilter(field_name="test__name", queryset=Test.objects.all())
+    name = filters.CharFilter()
     group = filters.ModelChoiceFilter(field_name="group__name", queryset=Group.objects.all())
     
     class Meta:
         model = TestKeys
-        fields = ['test__name', 'group__name', 'teacher']
+        fields = ['name', 'group__name', 'teacher']
 
 
 
 class TestResponseFilter(filters.FilterSet):
-    test = filters.ModelChoiceFilter(field_name="test__name", queryset=Test.objects.all())
+    test = filters.ModelChoiceFilter(field_name="test__name", queryset=TestKeys.objects.all())
     answer_message = filters.CharFilter(lookup_expr="icontains")
     
     class Meta:
@@ -68,7 +63,7 @@ class TestResponseFilter(filters.FilterSet):
 class StudentListAPIView(ListAPIView):
     serializer_class = StudentDetailSerializer
     queryset = Student.objects.all()
-    filter_fields = ("id", "name", 'group')
+    filter_fields = ("id", "name", 'user_id', 'group', 'teacher')
     filterset_class = StudentFilter
 
 class StudentCreateAPIView(CreateAPIView):
@@ -102,15 +97,6 @@ class GroupCreateAPIView(CreateAPIView):
 class GroupRetrieveUpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
     serializer_class = GroupSerializer
     queryset = Group.objects.all()
-
-
-
-    
-class TestAPIView(viewsets.ModelViewSet):
-    serializer_class = TestSerializer
-    queryset = Test.objects.all()
-    filter_fields = ('name')
-    filterset_class = TestFilter 
 
 
 
