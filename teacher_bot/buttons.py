@@ -67,7 +67,7 @@ view_group = KeyboardButton("Guruhni ko'rish")
 view_students = KeyboardButton("O'quvchilar ro'yxatini ko'rish")
 
 choose_group_button = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True, row_width=30)
-choose_group_button.add(view_group).insert(view_students).insert(delete_group_or_student).add(add_group_or_student)
+choose_group_button.insert(view_group).insert(view_students).add(delete_group_or_student).add(add_group_or_student)
 
 
 add_button = ReplyKeyboardMarkup(
